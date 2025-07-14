@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"dify-sandbox-win/internal/static"
 	"github.com/gin-gonic/gin"
-	"github.com/langgenius/dify-sandbox/internal/static"
 )
 
 func Auth() gin.HandlerFunc {

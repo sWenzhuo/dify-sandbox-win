@@ -1,10 +1,10 @@
 package controller
 
 import (
+	runner_types "dify-sandbox-win/internal/core/runner/types"
+	"dify-sandbox-win/internal/service"
+	"dify-sandbox-win/internal/types"
 	"github.com/gin-gonic/gin"
-	runner_types "github.com/langgenius/dify-sandbox/internal/core/runner/types"
-	"github.com/langgenius/dify-sandbox/internal/service"
-	"github.com/langgenius/dify-sandbox/internal/types"
 )
 
 func RunSandboxController(c *gin.Context) {
@@ -17,10 +17,6 @@ func RunSandboxController(c *gin.Context) {
 		switch req.Language {
 		case "python3":
 			c.JSON(200, service.RunPython3Code(req.Code, req.Preload, &runner_types.RunnerOptions{
-				EnableNetwork: req.EnableNetwork,
-			}))
-		case "nodejs":
-			c.JSON(200, service.RunNodeJsCode(req.Code, req.Preload, &runner_types.RunnerOptions{
 				EnableNetwork: req.EnableNetwork,
 			}))
 		default:

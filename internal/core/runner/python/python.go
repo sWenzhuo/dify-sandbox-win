@@ -2,20 +2,19 @@ package python
 
 import (
 	"crypto/rand"
+	"dify-sandbox-win/internal/core/runner"
+	"dify-sandbox-win/internal/core/runner/types"
+	"dify-sandbox-win/internal/static"
 	_ "embed"
 	"encoding/base64"
 	"fmt"
+	"github.com/google/uuid"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/langgenius/dify-sandbox/internal/core/runner"
-	"github.com/langgenius/dify-sandbox/internal/core/runner/types"
-	"github.com/langgenius/dify-sandbox/internal/static"
 )
 
 type PythonRunner struct {

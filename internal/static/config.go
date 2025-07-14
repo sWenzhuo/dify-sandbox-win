@@ -1,17 +1,36 @@
 package static
 
 import (
-	"os"
-	"strconv"
-	"strings"
-
-	"github.com/langgenius/dify-sandbox/internal/types"
-	"github.com/langgenius/dify-sandbox/internal/utils/log"
+	"dify-sandbox-win/internal/types"
+	"fmt"
 	"gopkg.in/yaml.v3"
+	"os"
 )
 
 var difySandboxGlobalConfigurations types.DifySandboxGlobalConfigurations
 
+func InitConfig(path string) error {
+	difySandboxGlobalConfigurations = types.DifySandboxGlobalConfigurations{}
+	//读取config文件
+	configFile, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	//结束后关闭文件
+	defer configFile.Close()
+	//解析config文件
+	decoder := yaml.NewDecoder(configFile)
+	err = decoder.Decode(&difySandboxGlobalConfigurations)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("✅ 配置加载成功: %+v\n", difySandboxGlobalConfigurations)
+	return nil
+
+}
+
+//以下默认的先从文件中读，然后环境变量覆盖太麻烦了
+/*
 func InitConfig(path string) error {
 	difySandboxGlobalConfigurations = types.DifySandboxGlobalConfigurations{}
 
@@ -74,8 +93,11 @@ func InitConfig(path string) error {
 		difySandboxGlobalConfigurations.PythonLibPaths = strings.Split(python_lib_path, ",")
 	}
 
+	//windows平台上基本不用
 	if len(difySandboxGlobalConfigurations.PythonLibPaths) == 0 {
-		difySandboxGlobalConfigurations.PythonLibPaths = DEFAULT_PYTHON_LIB_REQUIREMENTS
+		difySandboxGlobalConfigurations.PythonLibPaths = []string{"/usr/local/bin/python3"}
+
+		//difySandboxGlobalConfigurations.PythonLibPaths = DEFAULT_PYTHON_LIB_REQUIREMENTS
 	}
 
 	python_pip_mirror_url := os.Getenv("PIP_MIRROR_URL")
@@ -157,6 +179,8 @@ func InitConfig(path string) error {
 	return nil
 }
 
+*/
+
 // avoid global modification, use value copy instead
 func GetDifySandboxGlobalConfigurations() types.DifySandboxGlobalConfigurations {
 	return difySandboxGlobalConfigurations
@@ -173,7 +197,8 @@ func GetRunnerDependencies() RunnerDependencies {
 }
 
 func SetupRunnerDependencies() error {
-	file, err := os.ReadFile("dependencies/python-requirements.txt")
+	//file, err := os.ReadFile("dependencies/python-requirements.txt")
+	file, err := os.ReadFile(difySandboxGlobalConfigurations.RequirementsFile)
 	if err != nil {
 		if err == os.ErrNotExist {
 			return nil

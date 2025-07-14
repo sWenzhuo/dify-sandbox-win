@@ -1,14 +1,22 @@
 app:
   port: 8194
-  debug: True
+  debug: true  # YAML中布尔值用 true/false，不是 True/False
   key: dify-sandbox
 max_workers: 4
 max_requests: 50
 worker_timeout: 5
-python_path: /usr/local/bin/python3
-enable_network: True # please make sure there is no network risk in your environment
-enable_preload: False # please keep it as False for security purposes
-allowed_syscalls: # please leave it empty if you have no idea how seccomp works
+python_path: C:\Users\HP\AppData\Local\Programs\Python\Python312\python.exe
+python_lib_paths:  # 注意这里的key要和结构体tag匹配
+  - C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\site-packages  # 数组格式
+enable_network: true
+enable_preload: false
+allowed_syscalls: []  # 空数组
+requirements_file: D:\myproject\dify-sandbox-win\conf\requirements.txt
+requirements_pages:  # 数组格式
+  - math
+python_pip_mirror_url: ""  # 可选
+python_deps_update_interval: "30s"  # 可选
+nodejs_path: ""  # 可选
 proxy:
   socks5: ''
   http: ''

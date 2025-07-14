@@ -1,6 +1,11 @@
 package python
 
 import (
+	"dify-sandbox-win/internal/core/runner"
+	python_dependencies "dify-sandbox-win/internal/core/runner/python/dependencies"
+	"dify-sandbox-win/internal/core/runner/types"
+	"dify-sandbox-win/internal/static"
+	"dify-sandbox-win/internal/utils/log"
 	_ "embed"
 	"fmt"
 	"os"
@@ -8,20 +13,12 @@ import (
 	"path"
 	"regexp"
 	"strings"
-
-	"github.com/langgenius/dify-sandbox/internal/static"
-
-	"github.com/langgenius/dify-sandbox/internal/core/runner"
-	python_dependencies "github.com/langgenius/dify-sandbox/internal/core/runner/python/dependencies"
-	"github.com/langgenius/dify-sandbox/internal/core/runner/types"
-	"github.com/langgenius/dify-sandbox/internal/utils/log"
 )
 
-//go:embed python.so
 var python_lib []byte
 
 const (
-	LIB_PATH = "/var/sandbox/sandbox-python"
+	LIB_PATH = "D:\\myproject\\dify-sandbox-win\\userRun"
 	LIB_NAME = "python.so"
 )
 
@@ -70,6 +67,7 @@ func checkLibAvaliable() bool {
 	return true
 }
 
+// 拆分依赖和版本号
 func ExtractOnelineDepency(dependency string) (string, string) {
 	delimiters := []string{"==", ">=", "<=", "~="}
 	for _, delimiter := range delimiters {
@@ -93,11 +91,75 @@ func ExtractOnelineDepency(dependency string) (string, string) {
 	return "", ""
 }
 
+func InstallDependenciesV1(requirementPath string) error {
+	if requirementPath == "" {
+		return nil
+	}
+	//设置pip镜像
+	cfg := static.GetDifySandboxGlobalConfigurations()
+	pipMirrorURL := cfg.PythonPipMirrorURL
+	pythonPath := cfg.PythonPath
+	//读取文件
+	data, err := os.ReadFile(requirementPath)
+	if err != nil {
+		return fmt.Errorf("无法读取 requirements.txt: %w", err)
+	}
+	lines := strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n")
+	//一行一行安装依赖
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// 拆分依赖
+		packageName, version := ExtractOnelineDepency(line)
+		if packageName == "" {
+			continue
+		}
+		//更新pip
+		updatepip := []string{"-m", "pip", "install", "--upgrade", "pip"}
+		update := exec.Command(pythonPath, updatepip...)
+		if err = update.Run(); err != nil {
+			log.Error("更新pip失败")
+			return fmt.Errorf("更新pip失败")
+		}
+
+		// 构造 pip 命令：python -m pip install package
+		fullPackage := packageName
+		if version != "" {
+			fullPackage = fmt.Sprintf("%s==%s", packageName, version)
+		}
+
+		args := []string{"-m", "pip", "install", fullPackage}
+		if pipMirrorURL != "" {
+			args = append(args, "-i", pipMirrorURL)
+		}
+
+		cmd := exec.Command(pythonPath, args...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		log.Info("正在安装依赖: %s", fullPackage)
+		if err := cmd.Run(); err != nil {
+			log.Error("安装依赖 %s 失败: %v", fullPackage, err)
+			return fmt.Errorf("安装依赖 %s 失败: %w", fullPackage, err)
+		}
+
+		// 注册依赖，便于异步更新/索引
+		python_dependencies.SetupDependency(packageName, version)
+		log.Info("✅ 已注册依赖: %s %s", packageName, version)
+	}
+
+	return nil
+
+}
 func InstallDependencies(requirements string) error {
+
+	//给定requirements的文件path,安装依赖
 	if requirements == "" {
 		return nil
 	}
-
 	runner := runner.TempDirRunner{}
 	return runner.WithTempDir("/", []string{}, func(root_path string) error {
 		defer os.RemoveAll(root_path)

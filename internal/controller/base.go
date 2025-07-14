@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"dify-sandbox-win/internal/types"
 	"github.com/gin-gonic/gin"
-	"github.com/langgenius/dify-sandbox/internal/types"
 )
 
 func BindRequest[T any](r *gin.Context, success func(T)) {

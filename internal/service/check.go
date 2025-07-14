@@ -1,10 +1,9 @@
 package service
 
 import (
+	"dify-sandbox-win/internal/core/runner/types"
+	"dify-sandbox-win/internal/static"
 	"errors"
-
-	"github.com/langgenius/dify-sandbox/internal/core/runner/types"
-	"github.com/langgenius/dify-sandbox/internal/static"
 )
 
 var (

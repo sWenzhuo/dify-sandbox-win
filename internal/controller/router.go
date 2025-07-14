@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"dify-sandbox-win/internal/middleware"
+	"dify-sandbox-win/internal/static"
 	"github.com/gin-gonic/gin"
-	"github.com/langgenius/dify-sandbox/internal/middleware"
-	"github.com/langgenius/dify-sandbox/internal/static"
 	"net/http"
 )
 
@@ -27,17 +27,19 @@ func Setup(Router *gin.Engine) {
 func InitDependencyRouter(Router *gin.RouterGroup) {
 	dependencyRouter := Router.Group("dependencies")
 	{
+		//更新依赖
 		dependencyRouter.GET("", GetDependencies)
-		dependencyRouter.POST("update", UpdateDependencies)
-		dependencyRouter.GET("refresh", RefreshDependencies)
+		dependencyRouter.POST("/update", UpdateDependencies)
+		dependencyRouter.GET("/refresh", RefreshDependencies)
 	}
 }
 
 func InitRunRouter(Router *gin.RouterGroup) {
 	runRouter := Router.Group("")
 	{
+		//判断是否达到最大请求数和最大worker数
 		runRouter.POST(
-			"run",
+			"/run",
 			middleware.MaxRequest(static.GetDifySandboxGlobalConfigurations().MaxRequests),
 			middleware.MaxWorker(static.GetDifySandboxGlobalConfigurations().MaxWorkers),
 			RunSandboxController,

@@ -1,7 +1,12 @@
 package main
 
-import "github.com/langgenius/dify-sandbox/internal/server"
+import (
+	"dify-sandbox-win/internal/server"
+	"fmt"
+)
 
 func main() {
+	fmt.Println("Hello World")
 	server.Run()
+
 }

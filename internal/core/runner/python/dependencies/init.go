@@ -1,9 +1,8 @@
 package dependencies
 
 import (
+	"dify-sandbox-win/internal/core/runner/types"
 	"sync"
-
-	"github.com/langgenius/dify-sandbox/internal/core/runner/types"
 )
 
 var preload_script_map = map[string]string{}

@@ -1,14 +1,15 @@
 package runner
 
 import (
-	"os/exec"
-	"strconv"
-	"strings"
-
-	"github.com/langgenius/dify-sandbox/internal/static"
-	"github.com/langgenius/dify-sandbox/internal/utils/log"
+	"fmt"
 )
 
+func init() {
+	fmt.Println("init")
+
+}
+
+/*
 func init() {
 	// create sandbox user
 	user := static.SANDBOX_USER
@@ -35,3 +36,4 @@ func init() {
 		log.Panic("failed to convert gid: %v", err)
 	}
 }
+*/

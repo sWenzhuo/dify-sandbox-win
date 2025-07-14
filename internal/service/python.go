@@ -1,12 +1,11 @@
 package service
 
 import (
+	"dify-sandbox-win/internal/core/runner/python"
+	runner_types "dify-sandbox-win/internal/core/runner/types"
+	"dify-sandbox-win/internal/static"
+	"dify-sandbox-win/internal/types"
 	"time"
-
-	"github.com/langgenius/dify-sandbox/internal/core/runner/python"
-	runner_types "github.com/langgenius/dify-sandbox/internal/core/runner/types"
-	"github.com/langgenius/dify-sandbox/internal/static"
-	"github.com/langgenius/dify-sandbox/internal/types"
 )
 
 type RunCodeResponse struct {
@@ -20,15 +19,15 @@ func RunPython3Code(code string, preload string, options *runner_types.RunnerOpt
 	}
 
 	if !static.GetDifySandboxGlobalConfigurations().EnablePreload {
-	    preload = ""
+		preload = ""
 	}
-	
+
 	timeout := time.Duration(
 		static.GetDifySandboxGlobalConfigurations().WorkerTimeout * int(time.Second),
 	)
 
 	runner := python.PythonRunner{}
-	stdout, stderr, done, err := runner.Run(
+	stdout, stderr, done, err := runner.RunV1(
 		code, timeout, nil, preload, options,
 	)
 	if err != nil {

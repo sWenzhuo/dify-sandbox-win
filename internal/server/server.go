@@ -1,14 +1,13 @@
 package server
 
 import (
+	"dify-sandbox-win/internal/controller"
+	"dify-sandbox-win/internal/core/runner/python"
+	"dify-sandbox-win/internal/static"
+	"dify-sandbox-win/internal/utils/log"
 	"fmt"
-	"time"
-
 	"github.com/gin-gonic/gin"
-	"github.com/langgenius/dify-sandbox/internal/controller"
-	"github.com/langgenius/dify-sandbox/internal/core/runner/python"
-	"github.com/langgenius/dify-sandbox/internal/static"
-	"github.com/langgenius/dify-sandbox/internal/utils/log"
+	"time"
 )
 
 func initConfig() {
@@ -43,23 +42,45 @@ func initServer() {
 	r.Run(fmt.Sprintf(":%d", config.App.Port))
 }
 
+//func initServerV1() {
+//	r := gin.Default()
+//	r.Use(gin.Recovery())
+//	if gin.Mode() == gin.DebugMode {
+//		r.Use(gin.Logger())
+//	}
+//
+//	controller.Setup(r)
+//
+//	r.Run(fmt.Sprintf(":%d", 8080))
+//
+//}
+
 func initDependencies() {
 	log.Info("installing python dependencies...")
-	dependencies := static.GetRunnerDependencies()
-	err := python.InstallDependencies(dependencies.PythonRequirements)
+
+	dependencies := static.GetRunnerDependencies() //如果没有就是空
+	//安装依赖包
+	//err := python.InstallDependencies(dependencies.PythonRequirements)
+
+	config := static.GetDifySandboxGlobalConfigurations()
+	err := python.InstallDependenciesV1(config.RequirementsFile)
+
 	if err != nil {
 		log.Panic("failed to install python dependencies: %v", err)
 	}
 	log.Info("python dependencies installed")
 
 	log.Info("initializing python dependencies sandbox...")
-	err = python.PreparePythonDependenciesEnv()
+	//查看环境是否正常
+	err = python.PreparePythonDependenciesEnv_V1()
+
+	//err = python.PreparePythonDependenciesEnv()
 	if err != nil {
 		log.Panic("failed to initialize python dependencies sandbox: %v", err)
 	}
 	log.Info("python dependencies sandbox initialized")
 
-	// start a ticker to update python dependencies to keep the sandbox up-to-date
+	// 定时异步更新依赖
 	go func() {
 		updateInterval := static.GetDifySandboxGlobalConfigurations().PythonDepsUpdateInterval
 		tickerDuration, err := time.ParseDuration(updateInterval)
@@ -69,7 +90,7 @@ func initDependencies() {
 		}
 		ticker := time.NewTicker(tickerDuration)
 		for range ticker.C {
-			if err:=updatePythonDependencies(dependencies);err!=nil{
+			if err := updatePythonDependencies(dependencies); err != nil {
 				log.Error("Failed to update Python dependencies: %v", err)
 			}
 		}
@@ -78,11 +99,20 @@ func initDependencies() {
 
 func updatePythonDependencies(dependencies static.RunnerDependencies) error {
 	log.Info("Updating Python dependencies...")
-	if err := python.InstallDependencies(dependencies.PythonRequirements); err != nil {
+	config := static.GetDifySandboxGlobalConfigurations()
+	if err := python.InstallDependenciesV1(config.RequirementsFile); err != nil {
 		log.Error("Failed to install Python dependencies: %v", err)
 		return err
 	}
-	if err := python.PreparePythonDependenciesEnv(); err != nil {
+	/*
+		if err := python.InstallDependencies(dependencies.PythonRequirements); err != nil {
+			log.Error("Failed to install Python dependencies: %v", err)
+			return err
+		}
+
+	*/
+
+	if err := python.PreparePythonDependenciesEnv_V1(); err != nil {
 		log.Error("Failed to prepare Python dependencies environment: %v", err)
 		return err
 	}
@@ -91,10 +121,17 @@ func updatePythonDependencies(dependencies static.RunnerDependencies) error {
 }
 
 func Run() {
+
 	// init config
 	initConfig()
 	// init dependencies, it will cost some times
 	go initDependencies()
+	initServer()
+}
+
+/*
+func Run() {
 
 	initServer()
 }
+*/
